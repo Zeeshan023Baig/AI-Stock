@@ -1,10 +1,12 @@
 export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
-import yahooFinance from 'yahoo-finance2';
 
 export async function GET(req: Request) {
     try {
+        const yfModule = require('yahoo-finance2');
+        const yahooFinance = yfModule.default || yfModule;
+
         const { searchParams } = new URL(req.url);
         const query = searchParams.get('q');
 
