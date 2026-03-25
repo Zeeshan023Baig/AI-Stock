@@ -32,6 +32,6 @@ export async function GET(req: Request) {
         return NextResponse.json({ results: formattedResults }, { status: 200 });
     } catch (error: any) {
         console.error('Search API error:', error);
-        return NextResponse.json({ results: [], message: error.message }, { status: 500 });
+        return NextResponse.json({ results: [], message: error.message, stack: error.stack }, { status: 200 });
     }
 }
