@@ -37,7 +37,13 @@ const UserSchema: Schema = new Schema(
             preferredSectors: [{ type: String }],
             marketExperience: { type: String, enum: ['beginner', 'intermediate', 'expert'] },
         },
-        portfolio: [{ type: Schema.Types.Mixed }], // Can be structured later
+        portfolio: [{
+            ticker: String,
+            name: String,
+            quantity: Number,
+            buyPrice: Number,
+            addedAt: { type: Date, default: Date.now }
+        }], // Can be structured later
     },
     { timestamps: true }
 );
