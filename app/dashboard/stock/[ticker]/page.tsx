@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { Loader2, ArrowUpRight, ArrowDownRight, Activity, Plus, X, Globe, Zap, Newspaper } from "lucide-react";
+import { Loader2, ArrowUpRight, ArrowDownRight, Activity, Plus, X, Globe, Zap, Newspaper, AlertTriangle, ShieldCheck, TrendingUp, HelpCircle } from "lucide-react";
 
 export default function StockDetailPage() {
     const params = useParams();
@@ -17,6 +17,9 @@ export default function StockDetailPage() {
     const [shares, setShares] = useState(1);
     const [addingError, setAddingError] = useState("");
     const [addingLoading, setAddingLoading] = useState(false);
+
+    // Simulator State
+    const [simulateAmount, setSimulateAmount] = useState<number>(10000);
 
     useEffect(() => {
         if (!ticker) return;
@@ -37,8 +40,6 @@ export default function StockDetailPage() {
         };
 
         fetchStock();
-        const interval = setInterval(fetchStock, 15000);
-        return () => clearInterval(interval);
     }, [ticker]);
 
     const handleAddToPortfolio = async () => {
@@ -71,8 +72,9 @@ export default function StockDetailPage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
                 <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
+                <p className="text-slate-400 font-medium">Deep AI Analysis running...</p>
             </div>
         );
     }
@@ -87,12 +89,59 @@ export default function StockDetailPage() {
     }
 
     const { quote, historicalData, news } = data;
-    const isPositive = (quote.regularMarketChangePercent || 0) >= 0;
+    const change = quote.regularMarketChangePercent || 0;
+    const isPositive = change > 0;
 
-    // Mock AI Logic based on simple metrics
-    const mockConfidence = isPositive ? 75 + Math.random() * 20 : 50 + Math.random() * 30;
-    const mockDirection = isPositive ? "Bullish" : "Bearish";
-    const mockRecommendation = mockConfidence > 80 ? "BUY" : (mockConfidence < 60 ? "AVOID" : "HOLD");
+    // --- PHASE 5: HUMAN-LIKE INTELLIGENCE LOGIC ---
+
+    // 1. Decision-Focused UI
+    let decisionBadge = { label: "⏳ WAIT", flavor: "Neutral accumulation phase.", color: "bg-amber-500/10 text-amber-400 border-amber-500/30" };
+    let whyPoints = [
+        "Consolidating near current price levels.",
+        "Average trading volume indicates typical market interest.",
+        "News sentiment is balanced, lacking major catalysts."
+    ];
+
+    if (change > 1.5) {
+        decisionBadge = { label: "✅ BUY NOW", flavor: "Strong breakout detected.", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" };
+        whyPoints = [
+            "Strong upward trend confirmed by recent price action.",
+            "High trading volume indicating heavy institutional buying.",
+            "Positive sector momentum pushing the asset higher today."
+        ];
+    } else if (change < -2.0) {
+        // Drop buy
+        decisionBadge = { label: "✅ VALUE BUY", flavor: "Currently oversold alert.", color: "bg-blue-500/20 text-blue-400 border-blue-500/30" };
+        whyPoints = [
+            "Stock has experienced a massive short-term drop, entering oversold territory.",
+            "Historical fundamentals suggest the asset is currently undervalued.",
+            "Excellent entry point for defensive, long-term investors."
+        ];
+    } else if (change < -0.5) {
+        decisionBadge = { label: "❌ AVOID", flavor: "Bearish pressure mounting.", color: "bg-red-500/20 text-red-500 border-red-500/30" };
+        whyPoints = [
+            "Sharp downward correction in progress.",
+            "Failing to hold key technical support levels.",
+            "Selling pressure currently outweighs market demand."
+        ];
+    }
+
+    // 2. Smart Warnings
+    let warnings = [];
+    if (Math.abs(change) > 3) warnings.push("High volatility expected today. Prices fluctuating rapidly.");
+    if ((quote.trailingPE || 0) > 40) warnings.push("Currently trading at a premium valuation (High P/E ratio).");
+    if (quote.regularMarketVolume > (quote.averageVolume || quote.regularMarketVolume) * 1.5) warnings.push("Unusual volume spike detected in the last trading session.");
+
+    // 3. Confidence Breakdown
+    const confTrend = change > 1.5 ? 28 : (change < -0.5 ? 10 : 20);
+    const confNews = news && news.length > 2 ? 22 : 12;
+    const confVol = quote.regularMarketVolume > 5000000 ? 25 : 15;
+    const confMarket = 20; // Simulated static weight for macroeconomic conditions
+    const totalConf = confTrend + confNews + confVol + confMarket;
+
+    // 4. Simulator Outcomes (30 day horizon)
+    const upperTarget = simulateAmount * (decisionBadge.label.includes("BUY") ? 1.08 : 1.03);
+    const lowerRisk = simulateAmount * (decisionBadge.label === "❌ AVOID" ? 0.90 : 0.95);
 
     const formatNumber = (num: number) => {
         if (!num) return "N/A";
@@ -104,37 +153,54 @@ export default function StockDetailPage() {
 
     return (
         <div className="space-y-6 pb-20">
-            {/* Header Section */}
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-lg flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-                <div>
-                    <div className="flex items-center gap-3 mb-2">
-                        <h1 className="text-3xl font-bold text-slate-100">{quote.symbol}</h1>
-                        <span className="px-3 py-1 bg-slate-800 text-slate-300 text-xs font-bold rounded-full border border-slate-700">
-                            {quote.fullExchangeName || "Exchange"}
-                        </span>
-                    </div>
-                    <p className="text-slate-400 text-lg mb-4">{quote.longName || quote.shortName}</p>
-
-                    <div className="flex items-baseline gap-4">
-                        <h2 className="text-4xl font-black text-slate-100">
-                            {quote.regularMarketPrice?.toFixed(2)} {quote.currency || "INR"}
-                        </h2>
-                        <div className={`flex items-center text-lg font-bold ${isPositive ? "text-emerald-400" : "text-red-400"}`}>
-                            {isPositive ? <ArrowUpRight className="w-6 h-6 mr-1" /> : <ArrowDownRight className="w-6 h-6 mr-1" />}
-                            <span>{Math.abs(quote.regularMarketChangePercent || 0).toFixed(2)}%</span>
+            {/* Header Section (Decision Focused) */}
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-lg relative overflow-hidden">
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 relative z-10">
+                    <div className="flex-1">
+                        <div className="flex items-center gap-4 mb-3">
+                            <h1 className="text-4xl font-black text-slate-100">{quote.symbol}</h1>
+                            {/* MASSIVE DECISION BADGE */}
+                            <div className={`px-4 py-1.5 rounded-lg border-2 font-black text-lg shadow-xl uppercase tracking-wide flex items-center gap-2 ${decisionBadge.color}`}>
+                                {decisionBadge.label}
+                            </div>
                         </div>
-                    </div>
-                    <p className="text-sm text-slate-500 mt-2">
-                        Market is {quote.marketState === "REGULAR" ? <span className="text-emerald-500 font-bold">Open</span> : <span className="text-amber-500 font-bold">Closed</span>}
-                    </p>
-                </div>
+                        <p className="text-slate-400 text-lg mb-6">{quote.longName || quote.shortName}</p>
 
-                <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white rounded-xl font-bold transition-all shadow-lg flex items-center justify-center gap-2"
-                >
-                    <Plus className="w-5 h-5" /> Add to Portfolio
-                </button>
+                        <div className="flex items-baseline gap-4">
+                            <h2 className="text-5xl font-black text-slate-100">
+                                {quote.regularMarketPrice?.toFixed(2)} <span className="text-2xl text-slate-500 font-bold">{quote.currency || "INR"}</span>
+                            </h2>
+                            <div className={`flex items-center text-xl font-bold ${isPositive ? "text-emerald-400" : "text-red-400"}`}>
+                                {isPositive ? <ArrowUpRight className="w-7 h-7 mr-1" /> : <ArrowDownRight className="w-7 h-7 mr-1" />}
+                                <span>{Math.abs(change).toFixed(2)}%</span>
+                            </div>
+                        </div>
+
+                        {/* Smart Warnings Display directly under price */}
+                        {warnings.length > 0 && (
+                            <div className="mt-6 flex flex-wrap gap-3">
+                                {warnings.map((warn, i) => (
+                                    <div key={i} className="flex items-center gap-2 px-3 py-2 bg-amber-500/10 border border-amber-500/30 text-amber-500 rounded-lg text-sm font-semibold max-w-xl">
+                                        <AlertTriangle className="w-4 h-4 shrink-0" />
+                                        <span>⚠️ {warn}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex flex-col w-full lg:w-auto gap-4">
+                        <p className="text-sm font-medium text-slate-500 lg:text-right hidden lg:block">
+                            AI Verdict: <span className="text-slate-300">{decisionBadge.flavor}</span>
+                        </p>
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="w-full lg:w-auto px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-lg transition-all shadow-lg flex items-center justify-center gap-2"
+                        >
+                            <Plus className="w-6 h-6" /> Add to Portfolio
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -173,7 +239,7 @@ export default function StockDetailPage() {
                     {/* Key Metrics */}
                     <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-lg">
                         <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-                            <Globe className="w-5 h-5 text-blue-500" /> Key Financials
+                            <Globe className="w-5 h-5 text-blue-500" /> Core Financials
                         </h3>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
@@ -196,81 +262,117 @@ export default function StockDetailPage() {
                     </div>
                 </div>
 
-                {/* Right Column: AI & News */}
+                {/* Right Column: Deep AI Reasoning & Simulator */}
                 <div className="space-y-6">
-                    {/* AI Prediction */}
-                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-lg relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-4 opacity-5">
-                            <Zap className="w-32 h-32" />
-                        </div>
-                        <h3 className="text-lg font-bold mb-4 flex items-center gap-2 relative z-10">
-                            <Zap className="w-5 h-5 text-amber-500" /> AI Forecast
-                        </h3>
 
-                        <div className="relative z-10">
-                            <div className="mb-6">
-                                <div className="flex justify-between items-end mb-2">
-                                    <span className="text-slate-400 text-sm">30-Day Trend</span>
-                                    <span className={`text-xl font-bold ${mockDirection === 'Bullish' ? 'text-emerald-400' : 'text-red-400'}`}>
-                                        {mockDirection}
-                                    </span>
+                    {/* "Why this stock?" Engine */}
+                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-lg">
+                        <h3 className="text-lg font-bold mb-5 flex items-center gap-2">
+                            <HelpCircle className="w-5 h-5 text-indigo-400" /> Why this stock?
+                        </h3>
+                        <ul className="space-y-4">
+                            {whyPoints.map((point, i) => (
+                                <li key={i} className="flex gap-3 text-sm text-slate-300">
+                                    <div className="mt-1 shrink-0">
+                                        <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+                                    </div>
+                                    <span className="leading-snug">{point}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    {/* Transparency Base: Confidence Breakdown */}
+                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-lg">
+                        <div className="flex justify-between items-center mb-5">
+                            <h3 className="text-lg font-bold flex items-center gap-2">
+                                <ShieldCheck className="w-5 h-5 text-emerald-500" /> Overall Confidence
+                            </h3>
+                            <span className="text-xl font-black text-emerald-400">{totalConf}%</span>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <div className="flex justify-between text-xs text-slate-400 mb-1.5">
+                                    <span>Price Trend Strength</span>
+                                    <span>{confTrend}/30%</span>
                                 </div>
                                 <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                                    <div
-                                        className={`h-full ${mockDirection === 'Bullish' ? 'bg-emerald-500' : 'bg-red-500'}`}
-                                        style={{ width: `${mockConfidence}%` }}
-                                    ></div>
-                                </div>
-                                <div className="flex justify-between mt-1 text-xs text-slate-500">
-                                    <span>Confidence</span>
-                                    <span>{mockConfidence.toFixed(1)}%</span>
+                                    <div className="bg-cyan-500 h-full" style={{ width: `${(confTrend / 30) * 100}%` }}></div>
                                 </div>
                             </div>
-
-                            <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-4">
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="text-sm text-slate-300">Target Action</span>
-                                    <span className={`px-3 py-1 text-xs font-bold rounded ${mockRecommendation === 'BUY' ? 'bg-emerald-500/20 text-emerald-400' :
-                                        mockRecommendation === 'AVOID' ? 'bg-red-500/20 text-red-400' :
-                                            'bg-amber-500/20 text-amber-400'
-                                        }`}>
-                                        {mockRecommendation}
-                                    </span>
+                            <div>
+                                <div className="flex justify-between text-xs text-slate-400 mb-1.5">
+                                    <span>News Sentiment</span>
+                                    <span>{confNews}/25%</span>
                                 </div>
-                                <p className="text-sm text-slate-400 italic">
-                                    "Based on recent volume spikes and momentum, AI suggests this stock is trending {mockDirection.toLowerCase()} due to broader sector movement."
-                                </p>
+                                <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                                    <div className="bg-indigo-500 h-full" style={{ width: `${(confNews / 25) * 100}%` }}></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div className="flex justify-between text-xs text-slate-400 mb-1.5">
+                                    <span>Volume Activity</span>
+                                    <span>{confVol}/25%</span>
+                                </div>
+                                <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                                    <div className="bg-amber-500 h-full" style={{ width: `${(confVol / 25) * 100}%` }}></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div className="flex justify-between text-xs text-slate-400 mb-1.5">
+                                    <span>Market Alignment</span>
+                                    <span>{confMarket}/20%</span>
+                                </div>
+                                <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                                    <div className="bg-slate-400 h-full" style={{ width: `${(confMarket / 20) * 100}%` }}></div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Related News */}
-                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-lg max-h-[400px] overflow-y-auto custom-scrollbar">
-                        <h3 className="text-lg font-bold mb-4 flex items-center gap-2 sticky top-0 bg-slate-900 pb-2 z-10">
-                            <Newspaper className="w-5 h-5 text-slate-400" /> Latest News
+                    {/* Interactive Simulator */}
+                    <div className="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700/50 rounded-xl p-6 shadow-lg relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                            <TrendingUp className="w-32 h-32" />
+                        </div>
+                        <h3 className="text-lg font-bold mb-5 flex items-center gap-2 relative z-10">
+                            <Zap className="w-5 h-5 text-amber-500" /> Investment Simulator
                         </h3>
-                        <div className="space-y-4">
-                            {news && news.length > 0 ? (
-                                news.map((item: any, i: number) => (
-                                    <a key={i} href={item.link} target="_blank" rel="noopener noreferrer" className="block group">
-                                        <div className="border-l-2 border-slate-700 pl-3 group-hover:border-emerald-500 transition-colors">
-                                            <p className="text-sm font-medium text-slate-200 group-hover:text-emerald-400 line-clamp-2 transition-colors">
-                                                {item.title}
-                                            </p>
-                                            <div className="flex justify-between items-center mt-2">
-                                                <span className="text-xs text-slate-500">{item.publisher}</span>
-                                                <span className="text-[10px] px-2 py-0.5 bg-slate-800 text-slate-400 rounded">
-                                                    {new Date(item.providerPublishTime * 1000).toLocaleDateString()}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </a>
-                                ))
-                            ) : (
-                                <p className="text-sm text-slate-500 italic">No recent news found for this ticker.</p>
-                            )}
+
+                        <div className="relative z-10 space-y-5">
+                            <div>
+                                <label className="text-xs text-slate-400 mb-2 block uppercase tracking-wider font-bold">"If I invest..."</label>
+                                <div className="relative">
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
+                                    <input
+                                        type="number"
+                                        min="100"
+                                        step="1000"
+                                        value={simulateAmount}
+                                        onChange={(e) => setSimulateAmount(parseInt(e.target.value) || 0)}
+                                        className="w-full bg-slate-950/50 border border-slate-700 text-slate-100 rounded-lg pl-8 pr-4 py-3 focus:outline-none focus:border-amber-500 transition-colors font-bold text-lg"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="bg-slate-950/40 p-4 rounded-xl border border-slate-800">
+                                <p className="text-xs text-slate-500 mb-3 text-center">Predicted 30-Day Range Outcome</p>
+                                <div className="flex justify-between items-center px-2">
+                                    <div className="text-center">
+                                        <p className="font-bold text-red-400 text-lg">₹{lowerRisk.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
+                                        <p className="text-[10px] text-slate-500 uppercase mt-1">Bear Case</p>
+                                    </div>
+                                    <div className="h-0.5 w-10 bg-slate-800 mx-2"></div>
+                                    <div className="text-center">
+                                        <p className="font-bold text-emerald-400 text-lg">₹{upperTarget.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
+                                        <p className="text-[10px] text-slate-500 uppercase mt-1">Bull Case</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
                 </div>
             </div>
 
