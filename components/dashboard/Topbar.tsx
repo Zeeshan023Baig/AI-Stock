@@ -56,14 +56,10 @@ export default function Topbar() {
     };
 
     return (
-        <div className="h-16 bg-slate-900/80 backdrop-blur border-b border-slate-800 flex items-center justify-between px-6 shrink-0 sticky top-0 z-10 w-full">
-            <div className="flex items-center md:hidden">
-                <span className="text-lg font-bold text-emerald-400">AI Stock</span>
-            </div>
-
-            {/* Global Search */}
-            <div className="hidden md:flex flex-1 justify-center max-w-xl mx-auto" ref={searchRef}>
-                <div className="relative w-full max-w-md">
+        <div className="h-16 bg-slate-900/80 backdrop-blur border-b border-slate-800 flex items-center justify-between px-3 md:px-6 shrink-0 sticky top-0 z-10 w-full gap-2">
+            {/* Global Search - Visible on Mobile */}
+            <div className="flex flex-1 justify-center max-w-md mx-auto md:max-w-xl" ref={searchRef}>
+                <div className="relative w-full">
                     <div className="relative flex items-center">
                         <Search className="absolute left-3 w-4 h-4 text-slate-400" />
                         <input
