@@ -93,6 +93,21 @@ export default function PortfolioPage() {
                 <p className="text-slate-400 text-sm">Track your simulated AI investments in real-time.</p>
             </div>
 
+            {/* Market Closed Banner */}
+            {Object.keys(liveData).length > 0 && !Object.values(liveData).some(q => q.marketState === "REGULAR") && (
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
+                        <span className="w-2.5 h-2.5 bg-amber-500 rounded-full animate-pulse"></span>
+                    </div>
+                    <div>
+                        <h4 className="text-sm font-bold text-amber-500 mb-0.5">Market Currently Closed</h4>
+                        <p className="text-xs text-amber-500/80">
+                            The Indian Equity Market is closed for the day. Live Profit/Loss tracking matches your closing buy price and will resume updating tomorrow at 09:15 AM IST.
+                        </p>
+                    </div>
+                </div>
+            )}
+
             {portfolio.length === 0 ? (
                 <div className="bg-slate-900 border border-slate-800 rounded-xl p-10 shadow-lg text-center flex flex-col items-center">
                     <div className="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mb-6">
