@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { TrendingUp, Activity, PieChart, ShieldAlert, ArrowUpRight, ArrowDownRight, Zap } from "lucide-react";
 import PortfolioChart from "@/components/dashboard/PortfolioChart";
 
@@ -86,9 +87,9 @@ export default function DashboardPage() {
                             <h2 className="text-lg font-bold flex items-center gap-2">
                                 <Zap className="w-5 h-5 text-amber-500" /> Top AI Recommendations
                             </h2>
-                            <button className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
+                            <Link href="/dashboard/recommendations" className="text-sm font-bold text-emerald-400 hover:text-emerald-300 transition-colors">
                                 View All
-                            </button>
+                            </Link>
                         </div>
 
                         <div className="space-y-4">
