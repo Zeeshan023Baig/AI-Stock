@@ -2,12 +2,63 @@
 
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { TrendingUp, Activity, PieChart, ShieldAlert, ArrowUpRight, ArrowDownRight, Zap } from "lucide-react";
+import { useState, useEffect } from "react";
+import { TrendingUp, Activity, PieChart, ShieldAlert, ArrowUpRight, ArrowDownRight, Zap, Loader2 } from "lucide-react";
 import PortfolioChart from "@/components/dashboard/PortfolioChart";
 
 export default function DashboardPage() {
     const { data: session } = useSession();
 
+    const [portfolioTotal, setPortfolioTotal] = useState<number | null>(null);
+    const [portfolioChange, setPortfolioChange] = useState<number | null>(null);
+    const [niftyPrice, setNiftyPrice] = useState<number | null>(null);
+    const [niftyChange, setNiftyChange] = useState<number | null>(null);
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                // Fetch NIFTY 50
+                const niftyRes = await fetch("/api/data/stock/%5ENSEI");
+                const niftyData = await niftyRes.json();
+                if (niftyData.quote) {
+                    setNiftyPrice(niftyData.quote.regularMarketPrice);
+                    setNiftyChange(niftyData.quote.regularMarketChangePercent);
+                }
+
+                // Fetch Portfolio Live Value
+                const portRes = await fetch("/api/user/portfolio");
+                const portData = await portRes.json();
+
+                if (portData.portfolio && portData.portfolio.length > 0) {
+                    let totalValue = 0;
+                    let totalInvested = 0;
+
+                    const pricePromises = portData.portfolio.map(async (item: any) => {
+                        const quoteRes = await fetch(`/api/data/stock/${item.ticker}`);
+                        if (!quoteRes.ok) return;
+                        const quoteData = await quoteRes.json();
+                        const currentPrice = quoteData.quote?.regularMarketPrice || item.buyPrice;
+                        totalValue += currentPrice * item.quantity;
+                        totalInvested += item.buyPrice * item.quantity;
+                    });
+
+                    await Promise.all(pricePromises);
+                    setPortfolioTotal(totalValue);
+                    setPortfolioChange(totalInvested > 0 ? ((totalValue - totalInvested) / totalInvested) * 100 : 0);
+                } else {
+                    setPortfolioTotal(0);
+                    setPortfolioChange(0);
+                }
+            } catch (error) {
+                console.error("Dashboard data fetch error", error);
+            }
+        };
+
+        // Start polling every 30s
+        fetchDashboardData();
+        const interval = setInterval(fetchDashboardData, 30000);
+        return () => clearInterval(interval);
+    }, []);
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -32,12 +83,28 @@ export default function DashboardPage() {
                         <PieChart className="w-16 h-16 text-emerald-500" />
                     </div>
                     <p className="text-sm font-medium text-slate-400">Total Portfolio Value</p>
-                    <h3 className="text-2xl font-bold mt-2 text-slate-200">₹2,45,000</h3>
-                    <div className="flex items-center gap-1 mt-3 text-sm font-medium text-emerald-400">
-                        <ArrowUpRight className="w-4 h-4" />
-                        <span>+3.2% (₹7,840)</span>
-                        <span className="text-slate-500 ml-1 font-normal">this month</span>
-                    </div>
+
+                    {portfolioTotal === null ? (
+                        <div className="mt-4 flex items-center gap-2 text-slate-400">
+                            <Loader2 className="w-5 h-5 animate-spin" /> <span className="text-sm">Syncing...</span>
+                        </div>
+                    ) : (
+                        <>
+                            <h3 className="text-2xl font-bold mt-2 text-slate-200">
+                                {portfolioTotal === 0 ? "₹0.00" : `₹${portfolioTotal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`}
+                            </h3>
+                            {portfolioTotal !== 0 && portfolioChange !== null && (
+                                <div className={`flex items-center gap-1 mt-3 text-sm font-medium ${portfolioChange >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    {portfolioChange >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                                    <span>{portfolioChange > 0 ? '+' : ''}{portfolioChange.toFixed(2)}%</span>
+                                    <span className="text-slate-500 ml-1 font-normal">all time</span>
+                                </div>
+                            )}
+                            {portfolioTotal === 0 && (
+                                <div className="mt-3 text-sm text-slate-500">No active holdings</div>
+                            )}
+                        </>
+                    )}
                 </div>
 
                 <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg relative overflow-hidden">
@@ -69,12 +136,20 @@ export default function DashboardPage() {
                         <TrendingUp className="w-16 h-16 text-red-500" />
                     </div>
                     <p className="text-sm font-medium text-slate-400">NIFTY 50 Trend</p>
-                    <h3 className="text-2xl font-bold mt-2 text-slate-200">22,145.30</h3>
-                    <div className="flex items-center gap-1 mt-3 text-sm font-medium text-red-400">
-                        <ArrowDownRight className="w-4 h-4" />
-                        <span>-0.45%</span>
-                        <span className="text-slate-500 ml-1 font-normal">today</span>
-                    </div>
+                    {niftyPrice === null ? (
+                        <div className="mt-4 flex items-center gap-2 text-slate-400">
+                            <Loader2 className="w-5 h-5 animate-spin" /> <span className="text-sm">Fetching...</span>
+                        </div>
+                    ) : (
+                        <>
+                            <h3 className="text-2xl font-bold mt-2 text-slate-200">{niftyPrice.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</h3>
+                            <div className={`flex items-center gap-1 mt-3 text-sm font-medium ${niftyChange! >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                {niftyChange! >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                                <span>{niftyChange! > 0 ? '+' : ''}{niftyChange!.toFixed(2)}%</span>
+                                <span className="text-slate-500 ml-1 font-normal">today</span>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
 
