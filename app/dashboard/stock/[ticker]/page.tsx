@@ -20,6 +20,7 @@ export default function StockDetailPage() {
 
     // Simulator State
     const [simulateAmount, setSimulateAmount] = useState<number>(10000);
+    const [simMode, setSimMode] = useState<"forecast" | "backtest">("forecast");
 
     useEffect(() => {
         if (!ticker) return;
@@ -339,9 +340,25 @@ export default function StockDetailPage() {
                         <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
                             <TrendingUp className="w-32 h-32" />
                         </div>
-                        <h3 className="text-lg font-bold mb-5 flex items-center gap-2 relative z-10">
-                            <Zap className="w-5 h-5 text-amber-500" /> Investment Simulator
-                        </h3>
+                        <div className="flex justify-between items-center mb-5 relative z-10 w-full flex-wrap gap-2">
+                            <h3 className="text-lg font-bold flex items-center gap-2">
+                                <Zap className="w-5 h-5 text-amber-500" /> Investment Simulator
+                            </h3>
+                            <div className="flex bg-slate-950/80 rounded-lg p-1 border border-slate-800/80 shrink-0">
+                                <button
+                                    onClick={() => setSimMode("forecast")}
+                                    className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${simMode === "forecast" ? "bg-slate-700 text-amber-400 shadow" : "text-slate-500 hover:text-slate-300"}`}
+                                >
+                                    AI Forecast
+                                </button>
+                                <button
+                                    onClick={() => setSimMode("backtest")}
+                                    className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${simMode === "backtest" ? "bg-slate-700 text-indigo-400 shadow" : "text-slate-500 hover:text-slate-300"}`}
+                                >
+                                    1Y Backtest
+                                </button>
+                            </div>
+                        </div>
 
                         <div className="relative z-10 space-y-5">
                             <div>
@@ -359,19 +376,45 @@ export default function StockDetailPage() {
                                 </div>
                             </div>
 
-                            <div className="bg-slate-950/40 p-4 rounded-xl border border-slate-800">
-                                <p className="text-xs text-slate-500 mb-3 text-center">Predicted 30-Day Range Outcome</p>
-                                <div className="flex justify-between items-center px-2">
-                                    <div className="text-center">
-                                        <p className="font-bold text-red-400 text-lg">₹{lowerRisk.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
-                                        <p className="text-[10px] text-slate-500 uppercase mt-1">Bear Case</p>
-                                    </div>
-                                    <div className="h-0.5 w-10 bg-slate-800 mx-2"></div>
-                                    <div className="text-center">
-                                        <p className="font-bold text-emerald-400 text-lg">₹{upperTarget.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
-                                        <p className="text-[10px] text-slate-500 uppercase mt-1">Bull Case</p>
-                                    </div>
-                                </div>
+                            <div className="bg-slate-950/40 p-4 rounded-xl border border-slate-800 min-h-[85px] flex flex-col justify-center">
+                                {simMode === "forecast" ? (
+                                    <>
+                                        <p className="text-xs text-slate-500 mb-3 text-center">Predicted 30-Day Range Outcome</p>
+                                        <div className="flex justify-between items-center px-2">
+                                            <div className="text-center">
+                                                <p className="font-bold text-red-400 text-lg">₹{lowerRisk.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
+                                                <p className="text-[10px] text-slate-500 uppercase mt-1">Bear Case</p>
+                                            </div>
+                                            <div className="h-0.5 w-10 bg-slate-800 mx-2"></div>
+                                            <div className="text-center">
+                                                <p className="font-bold text-emerald-400 text-lg">₹{upperTarget.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
+                                                <p className="text-[10px] text-slate-500 uppercase mt-1">Bull Case</p>
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    (() => {
+                                        // Calculate actual multiplier if we bought from the earliest point exactly a year ago!
+                                        const pastPrice = historicalData?.[0]?.price || quote.regularMarketPrice || 1;
+                                        const nowPrice = quote.regularMarketPrice || 1;
+                                        const returnedVal = simulateAmount * (nowPrice / pastPrice);
+                                        const actualDate = historicalData?.[0]?.date?.split('-').slice(0, 2).join('/') || "1 year ago";
+
+                                        return (
+                                            <>
+                                                <p className="text-xs text-slate-500 mb-2 text-center">What ₹{simulateAmount.toLocaleString()} would be worth today if bought in {actualDate}</p>
+                                                <div className="flex flex-col items-center justify-center">
+                                                    <p className={`font-bold text-2xl ${returnedVal >= simulateAmount ? "text-emerald-400" : "text-red-400"}`}>
+                                                        ₹{returnedVal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                                    </p>
+                                                    <p className={`text-[10px] uppercase mt-1 font-bold px-2 py-0.5 rounded ${returnedVal >= simulateAmount ? "text-emerald-400 bg-emerald-500/10 border border-emerald-500/30" : "text-red-400 bg-red-500/10 border border-red-500/30"}`}>
+                                                        {returnedVal >= simulateAmount ? "Profitable Decision" : "Loss Incurred"}
+                                                    </p>
+                                                </div>
+                                            </>
+                                        );
+                                    })()
+                                )}
                             </div>
                         </div>
                     </div>

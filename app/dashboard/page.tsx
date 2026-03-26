@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { TrendingUp, Activity, PieChart, ShieldAlert, ArrowUpRight, ArrowDownRight, Zap, Loader2 } from "lucide-react";
+import { TrendingUp, Activity, PieChart, ShieldAlert, ArrowUpRight, ArrowDownRight, Zap, Loader2, Globe } from "lucide-react";
 import PortfolioChart from "@/components/dashboard/PortfolioChart";
 
 export default function DashboardPage() {
@@ -14,6 +14,7 @@ export default function DashboardPage() {
     const [niftyPrice, setNiftyPrice] = useState<number | null>(null);
     const [niftyChange, setNiftyChange] = useState<number | null>(null);
     const [alertsTotal, setAlertsTotal] = useState<number | null>(null);
+    const [macroData, setMacroData] = useState<any>(null);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -25,6 +26,25 @@ export default function DashboardPage() {
                     setNiftyPrice(niftyData.quote.regularMarketPrice);
                     setNiftyChange(niftyData.quote.regularMarketChangePercent);
                 }
+
+                // Fetch Global Macros
+                try {
+                    const [oilRes, inrRes, goldRes] = await Promise.all([
+                        fetch("/api/data/stock/CL%3DF"), // WTI Crude
+                        fetch("/api/data/stock/INR%3DX"), // USD/INR
+                        fetch("/api/data/stock/GC%3DF"),  // Gold
+                    ]);
+
+                    const oil = oilRes.ok ? await oilRes.json() : null;
+                    const inr = inrRes.ok ? await inrRes.json() : null;
+                    const gold = goldRes.ok ? await goldRes.json() : null;
+
+                    setMacroData({
+                        oil: oil?.quote || null,
+                        inr: inr?.quote || null,
+                        gold: gold?.quote || null
+                    });
+                } catch (e) { console.error("Macro fetch failed"); }
 
                 // Fetch User Alerts
                 try {
@@ -78,7 +98,16 @@ export default function DashboardPage() {
                     <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-500">
                         Welcome back, {session?.user?.name?.split(" ")[0] || "Investor"}
                     </h1>
-                    <p className="text-slate-400 text-sm mt-1">Here is your AI-powered market overview today.</p>
+                    {niftyChange === null ? (
+                        <p className="text-slate-400 text-sm mt-1 flex items-center gap-2"><Loader2 className="w-3 h-3 animate-spin" /> Synthesizing Market Story...</p>
+                    ) : (
+                        <p className="text-slate-300 text-sm mt-2 max-w-2xl leading-relaxed border-l-2 border-emerald-500 pl-3">
+                            The market is currently {niftyChange > 0 ? "showing bullish momentum" : "facing downward pressure"} as the NIFTY 50 {niftyChange > 0 ? "climbs" : "drops"} <strong>{Math.abs(niftyChange).toFixed(2)}%</strong> today.
+                            {macroData?.inr?.regularMarketChangePercent > 0 && " The weakening Rupee continues to act as a massive tailwind for IT and Pharma export revenues."}
+                            {macroData?.oil?.regularMarketChangePercent > 1 && " Meanwhile, spiking crude oil profiles are threatening gross margins for domestic aviation and FMCG sectors."}
+                            {macroData?.gold?.regularMarketChangePercent > 0.5 && " Gold's upward trajectory suggests institutional investors are rotating capital into safe havens."}
+                        </p>
+                    )}
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2">
@@ -251,25 +280,70 @@ export default function DashboardPage() {
 
                 {/* Right Sidebar Area */}
                 <div className="space-y-6">
-                    {/* News Impact Engine */}
+                    {/* Live Global Impact Engine */}
                     <div className="bg-slate-900 border border-slate-800 rounded-xl shadow-lg p-6">
                         <h2 className="text-lg font-bold flex items-center gap-2 mb-4">
-                            News Impact Engine
+                            <Globe className="w-5 h-5 text-indigo-400" /> Global Macro Impacts
                         </h2>
-                        <div className="space-y-4">
-                            <div className="border-l-4 border-emerald-500 pl-3">
-                                <p className="text-sm font-medium">Oil prices drop globally</p>
-                                <p className="text-xs text-slate-400 mt-1">Impact: Airline stocks up, Energy neutral</p>
+
+                        {!macroData ? (
+                            <div className="text-center py-6 text-slate-500 text-sm flex gap-2 justify-center items-center">
+                                <Loader2 className="w-4 h-4 animate-spin" /> Analyzing Macro Data...
                             </div>
-                            <div className="border-l-4 border-red-500 pl-3">
-                                <p className="text-sm font-medium">US Inflation higher than expected</p>
-                                <p className="text-xs text-slate-400 mt-1">Impact: Tech sector seeing sell-off pressures</p>
+                        ) : (
+                            <div className="space-y-4">
+                                {/* Oil impact */}
+                                {macroData.oil && (
+                                    <div className={`border-l-4 pl-3 ${macroData.oil.regularMarketChangePercent > 0 ? 'border-red-500' : 'border-emerald-500'}`}>
+                                        <div className="flex justify-between items-center whitespace-nowrap overflow-hidden text-ellipsis">
+                                            <p className="text-sm font-bold flex items-center gap-1">
+                                                Crude Oil <span className="text-xs text-slate-400 font-normal ml-1">(${macroData.oil.regularMarketPrice?.toFixed(2)})</span>
+                                            </p>
+                                            <span className={`text-xs font-bold ${macroData.oil.regularMarketChangePercent > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                                                {macroData.oil.regularMarketChangePercent > 0 ? '▲' : '▼'} {Math.abs(macroData.oil.regularMarketChangePercent).toFixed(2)}%
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-slate-400 mt-1">
+                                            <span className="text-slate-300 font-medium">Impact:</span> {macroData.oil.regularMarketChangePercent > 0 ? 'Airline & Paint stocks face margin pressure' : 'Reduced import bill boosts Aviation/Paints'}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* USD/INR impact */}
+                                {macroData.inr && (
+                                    <div className={`border-l-4 pl-3 ${macroData.inr.regularMarketChangePercent > 0 ? 'border-emerald-500' : 'border-red-500'}`}>
+                                        <div className="flex justify-between items-center whitespace-nowrap overflow-hidden text-ellipsis">
+                                            <p className="text-sm font-bold flex items-center gap-1">
+                                                USD / INR <span className="text-xs text-slate-400 font-normal ml-1">(₹{macroData.inr.regularMarketPrice?.toFixed(2)})</span>
+                                            </p>
+                                            <span className={`text-xs font-bold ${macroData.inr.regularMarketChangePercent > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                {macroData.inr.regularMarketChangePercent > 0 ? '▲' : '▼'} {Math.abs(macroData.inr.regularMarketChangePercent).toFixed(2)}%
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-slate-400 mt-1">
+                                            <span className="text-slate-300 font-medium">Impact:</span> {macroData.inr.regularMarketChangePercent > 0 ? 'Weaker Rupee strongly benefits IT & Pharma Exports' : 'Stronger Rupee hurts IT sector foreign revenue'}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* Gold impact */}
+                                {macroData.gold && (
+                                    <div className={`border-l-4 pl-3 ${macroData.gold.regularMarketChangePercent > 0 ? 'border-amber-500' : 'border-slate-500'}`}>
+                                        <div className="flex justify-between items-center whitespace-nowrap overflow-hidden text-ellipsis">
+                                            <p className="text-sm font-bold flex items-center gap-1 text-amber-500">
+                                                Gold <span className="text-xs text-slate-400 font-normal ml-1">(${macroData.gold.regularMarketPrice?.toFixed(1)})</span>
+                                            </p>
+                                            <span className={`text-xs font-bold ${macroData.gold.regularMarketChangePercent > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                {macroData.gold.regularMarketChangePercent > 0 ? '▲' : '▼'} {Math.abs(macroData.gold.regularMarketChangePercent).toFixed(2)}%
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-slate-400 mt-1">
+                                            <span className="text-slate-300 font-medium">Market Sentiment:</span> {macroData.gold.regularMarketChangePercent > 1.0 ? 'Risk-off. Investors fleeing to safety.' : 'Risk-on. Normal equity market behavior.'}
+                                        </p>
+                                    </div>
+                                )}
                             </div>
-                            <div className="border-l-4 border-amber-500 pl-3">
-                                <p className="text-sm font-medium">RBI holds interest rates</p>
-                                <p className="text-xs text-slate-400 mt-1">Impact: Banking sector stable, real estate mixed</p>
-                            </div>
-                        </div>
+                        )}
                     </div>
 
                     {/* Active Triggers */}
