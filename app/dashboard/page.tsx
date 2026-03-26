@@ -173,10 +173,10 @@ export default function DashboardPage() {
                                 <div className="flex-1 w-full">
                                     <div className="flex items-center justify-between sm:justify-start gap-4 mb-2">
                                         <h4 className="font-bold text-lg">RELIANCE</h4>
-                                        <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-bold rounded">BUY</span>
+                                        <span className="px-2.5 py-1 bg-blue-500/10 text-blue-400 text-xs font-bold rounded">ANALYZING</span>
                                     </div>
                                     <p className="text-sm text-slate-400 leading-snug max-w-md">
-                                        Energy sector breakout expected. Target: ₹3,150. Stop-loss: ₹2,850.
+                                        AI engine is crunching live Energy sector momentum. Click to view real-time signal.
                                     </p>
                                 </div>
                                 <div className="w-full sm:w-auto shrink-0 flex items-center gap-4">
@@ -184,9 +184,9 @@ export default function DashboardPage() {
                                         <div className="text-xs text-slate-500 mb-1">AI Confidence</div>
                                         <div className="flex items-center gap-2">
                                             <div className="w-24 bg-slate-700 h-2 rounded-full overflow-hidden">
-                                                <div className="bg-emerald-500 h-full w-[88%]"></div>
+                                                <div className="bg-blue-500 h-full w-[88%] animate-pulse"></div>
                                             </div>
-                                            <span className="text-sm font-bold text-emerald-400">88%</span>
+                                            <span className="text-sm font-bold text-blue-400">88%</span>
                                         </div>
                                     </div>
                                 </div>
@@ -197,10 +197,10 @@ export default function DashboardPage() {
                                 <div className="flex-1 w-full">
                                     <div className="flex items-center justify-between sm:justify-start gap-4 mb-2">
                                         <h4 className="font-bold text-lg">INFY</h4>
-                                        <span className="px-2.5 py-1 bg-amber-500/10 text-amber-400 text-xs font-bold rounded">HOLD</span>
+                                        <span className="px-2.5 py-1 bg-blue-500/10 text-blue-400 text-xs font-bold rounded">ANALYZING</span>
                                     </div>
                                     <p className="text-sm text-slate-400 leading-snug max-w-md">
-                                        IT sector neutral trend. Support holding at ₹1,520 range.
+                                        Evaluating IT sector support ranges against global tech headwinds.
                                     </p>
                                 </div>
                                 <div className="w-full sm:w-auto shrink-0 flex items-center gap-4">
@@ -208,14 +208,13 @@ export default function DashboardPage() {
                                         <div className="text-xs text-slate-500 mb-1">AI Confidence</div>
                                         <div className="flex items-center gap-2">
                                             <div className="w-24 bg-slate-700 h-2 rounded-full overflow-hidden">
-                                                <div className="bg-amber-500 h-full w-[72%]"></div>
+                                                <div className="bg-blue-500 h-full w-[72%] animate-pulse"></div>
                                             </div>
-                                            <span className="text-sm font-bold text-amber-400">72%</span>
+                                            <span className="text-sm font-bold text-blue-400">72%</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-
                         </div>
                     </div>
 
