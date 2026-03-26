@@ -46,6 +46,9 @@ export default function StockDetailPage() {
         setAddingLoading(true);
         setAddingError("");
         try {
+            const customPriceInput = document.getElementById("customBuyPrice") as HTMLInputElement;
+            const finalBuyPrice = customPriceInput ? parseFloat(customPriceInput.value) : data.quote.regularMarketPrice;
+
             const res = await fetch("/api/user/portfolio", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -53,7 +56,7 @@ export default function StockDetailPage() {
                     ticker: data.quote.symbol,
                     name: data.quote.shortName || data.quote.longName || data.quote.symbol,
                     quantity: shares,
-                    buyPrice: data.quote.regularMarketPrice,
+                    buyPrice: finalBuyPrice,
                 }),
             });
             if (res.ok) {
@@ -398,16 +401,33 @@ export default function StockDetailPage() {
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-slate-400 mb-2">Number of Shares</label>
-                                <input
-                                    type="number"
-                                    min="0.01"
-                                    step="any"
-                                    value={shares}
-                                    onChange={(e) => setShares(parseFloat(e.target.value) || 0)}
-                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-lg font-bold"
-                                />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-400 mb-2">Number of Shares</label>
+                                    <input
+                                        type="number"
+                                        min="0.01"
+                                        step="any"
+                                        value={shares}
+                                        onChange={(e) => setShares(parseFloat(e.target.value) || 0)}
+                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-lg font-bold"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-400 mb-2">Entry Buy Price</label>
+                                    <div className="relative">
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">{quote.currency}</span>
+                                        <input
+                                            type="number"
+                                            min="0.01"
+                                            step="0.01"
+                                            defaultValue={quote.regularMarketPrice?.toFixed(2)}
+                                            id="customBuyPrice"
+                                            className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-lg font-bold"
+                                        />
+                                    </div>
+                                    <p className="text-[10px] text-slate-500 mt-1">Leave as default to buy at current price</p>
+                                </div>
                             </div>
 
                             <div className="flex justify-between items-center text-sm">
