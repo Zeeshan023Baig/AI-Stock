@@ -10,9 +10,9 @@ export default function MarketNewsPage() {
         {
             id: 1,
             category: "Markets",
-            title: "Global Markets Rally as Inflation Cools Down Faster Than Expected",
-            excerpt: "Equities surged across the board globally following new data suggesting central banks may begin cutting rates earlier in Q3.",
-            source: "Financial Times",
+            title: "NIFTY 50 Hits New All-Time High Amidst Strong Domestic Inflows",
+            excerpt: "Indian equities surged across the board today following positive Q3 GDP data and steady mutual fund SIP contributions.",
+            source: "Mint",
             time: "2 hours ago",
             impact: "Bullish",
             icon: TrendingUp,
@@ -20,9 +20,9 @@ export default function MarketNewsPage() {
         {
             id: 2,
             category: "Tech",
-            title: "Major Semiconductor Merger Approved by Regulators",
-            excerpt: "The $40B merger will reshape the global chip supply chain, likely boosting capacities for AI hardware manufacturing.",
-            source: "Reuters",
+            title: "TCS and Infosys Report Margin Expansion Following Cloud Mega-Deals",
+            excerpt: "Top Indian IT majors have signaled a recovery in client spending from North American markets, driving sector indices higher.",
+            source: "Economic Times",
             time: "4 hours ago",
             impact: "Bullish",
             icon: TrendingUp,
@@ -30,39 +30,39 @@ export default function MarketNewsPage() {
         {
             id: 3,
             category: "Energy",
-            title: "Oil Prices Dip Below $75 Amidst Rising Output Estimates",
-            excerpt: "Energy sector stocks took a massive hit today as OPEC+ signaled that it may not extend current production cuts.",
-            source: "Bloomberg",
+            title: "Reliance Industries to Spin Off Green Energy Arm by Next Fiscal",
+            excerpt: "Shares of RIL saw high volume trading today after the board officially approved the renewable tech demerger plan.",
+            source: "Bloomberg Quint",
             time: "5 hours ago",
-            impact: "Bearish",
-            icon: TrendingDown,
-        },
-        {
-            id: 4,
-            category: "Economy",
-            title: "Job Market Shows Signs of Strain, Unemployment Ticks Up",
-            excerpt: "Recent non-farm payrolls dropped by 10% month-over-month, suggesting macroeconomic tightening is finally slowing growth.",
-            source: "Wall Street Journal",
-            time: "7 hours ago",
-            impact: "Bearish",
-            icon: TrendingDown,
-        },
-        {
-            id: 5,
-            category: "Crypto",
-            title: "Bitcoin Surpasses Key Resistance Level Followed by ETF Inflows",
-            excerpt: "Institutional buying continues to propel digital assets higher as new regulatory frameworks provide clarity.",
-            source: "CoinDesk",
-            time: "8 hours ago",
             impact: "Bullish",
             icon: TrendingUp,
         },
         {
+            id: 4,
+            category: "Economy",
+            title: "RBI Holds Repo Rate Steady at 6.5%, Maintains 'Withdrawal of Accommodation'",
+            excerpt: "The Monetary Policy Committee voted to keep interest rates unchanged, citing resilient growth despite persistent core inflation concerns.",
+            source: "Financial Express",
+            time: "7 hours ago",
+            impact: "Neutral",
+            icon: Globe,
+        },
+        {
+            id: 5,
+            category: "Auto",
+            title: "Tata Motors PV Sales Dip as EV FAME Subsidies End",
+            excerpt: "Auto sector stocks faced pressure today as major players reported a Month-over-Month decline in electric vehicle registrations.",
+            source: "Moneycontrol",
+            time: "8 hours ago",
+            impact: "Bearish",
+            icon: TrendingDown,
+        },
+        {
             id: 6,
             category: "Markets",
-            title: "Asian Markets Mixed Following China Real Estate Default Concerns",
-            excerpt: "The Hang Seng dropped 1.2% while the Nikkei gained, reflecting fragmented sentiment in the APAC region.",
-            source: "CNBC",
+            title: "FIIs Turn Net Sellers in Cash Market, DIIs Continue to Buy the Dip",
+            excerpt: "Foreign investors pulled ₹1,200 crore from the domestic market yesterday, but domestic institutions absorbed the liquidity shock.",
+            source: "CNBC TV18",
             time: "10 hours ago",
             impact: "Neutral",
             icon: Globe,
@@ -77,7 +77,7 @@ export default function MarketNewsPage() {
                 <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500 flex items-center gap-2">
                     <Newspaper className="w-6 h-6 text-blue-500" /> Market News
                 </h1>
-                <p className="text-slate-400 text-sm mt-1">Real-time global financial news and macroeconomic impacts.</p>
+                <p className="text-slate-400 text-sm mt-1">Real-time domestic market news and macroeconomic impacts.</p>
             </div>
 
             {/* Breaking News Banner */}
@@ -86,13 +86,13 @@ export default function MarketNewsPage() {
                     <Flame className="w-3 h-3" /> BREAKING
                 </div>
                 <p className="text-sm font-medium text-slate-200">
-                    Federal Reserve Chairman signals a potential 25 basis point rate cut by September if core inflation remains stable.
+                    SEBI introduces new T+0 same-day settlement rules for select large-cap stocks starting next week.
                 </p>
             </div>
 
             {/* Category Tabs */}
             <div className="flex overflow-x-auto gap-2 pb-2 custom-scrollbar">
-                {['all', 'markets', 'tech', 'energy', 'economy', 'crypto'].map((tab) => (
+                {['all', 'markets', 'tech', 'energy', 'economy', 'auto'].map((tab) => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}

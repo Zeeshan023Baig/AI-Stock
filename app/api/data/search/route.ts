@@ -27,7 +27,13 @@ export async function GET(req: Request) {
             shortname: quote.shortname || quote.longname || quote.symbol,
             exchDisp: quote.exchDisp,
             typeDisp: quote.typeDisp,
-        }));
+        })).sort((a: any, b: any) => {
+            const aIsIndian = a.symbol.endsWith('.NS') || a.symbol.endsWith('.BO');
+            const bIsIndian = b.symbol.endsWith('.NS') || b.symbol.endsWith('.BO');
+            if (aIsIndian && !bIsIndian) return -1;
+            if (!aIsIndian && bIsIndian) return 1;
+            return 0;
+        });
 
         return NextResponse.json({ results: formattedResults }, { status: 200 });
     } catch (error: any) {
