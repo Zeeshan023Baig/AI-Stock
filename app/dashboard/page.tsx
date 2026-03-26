@@ -13,6 +13,7 @@ export default function DashboardPage() {
     const [portfolioChange, setPortfolioChange] = useState<number | null>(null);
     const [niftyPrice, setNiftyPrice] = useState<number | null>(null);
     const [niftyChange, setNiftyChange] = useState<number | null>(null);
+    const [alertsTotal, setAlertsTotal] = useState<number | null>(null);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -24,6 +25,17 @@ export default function DashboardPage() {
                     setNiftyPrice(niftyData.quote.regularMarketPrice);
                     setNiftyChange(niftyData.quote.regularMarketChangePercent);
                 }
+
+                // Fetch User Alerts
+                try {
+                    const alertsRes = await fetch("/api/user/alerts");
+                    const alertsData = await alertsRes.json();
+                    if (alertsData.alerts) {
+                        setAlertsTotal(alertsData.alerts.length);
+                    } else {
+                        setAlertsTotal(0);
+                    }
+                } catch (e) { setAlertsTotal(0); }
 
                 // Fetch Portfolio Live Value
                 const portRes = await fetch("/api/user/portfolio");
@@ -125,10 +137,20 @@ export default function DashboardPage() {
                         <Zap className="w-16 h-16 text-amber-500" />
                     </div>
                     <p className="text-sm font-medium text-slate-400">Active Triggers</p>
-                    <h3 className="text-2xl font-bold mt-2 text-slate-200">4 Alerts</h3>
-                    <div className="flex items-center gap-1 mt-3 text-sm font-medium text-amber-400">
-                        <span>2 Actionable today</span>
-                    </div>
+                    {alertsTotal === null ? (
+                        <div className="mt-4 flex items-center gap-2 text-slate-400">
+                            <Loader2 className="w-5 h-5 animate-spin" /> <span className="text-sm">Fetching...</span>
+                        </div>
+                    ) : (
+                        <>
+                            <h3 className="text-2xl font-bold mt-2 text-slate-200">{alertsTotal} {alertsTotal === 1 ? 'Alert' : 'Alerts'}</h3>
+                            <div className="flex items-center gap-1 mt-3 text-sm font-medium text-amber-400">
+                                <Link href="/dashboard/alerts" className="hover:text-amber-300 transition-colors flex items-center">
+                                    Manage configurations <ArrowUpRight className="w-4 h-4 ml-1" />
+                                </Link>
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg relative overflow-hidden">
@@ -256,24 +278,26 @@ export default function DashboardPage() {
                             Live Triggers
                         </h2>
                         <div className="space-y-3">
-                            <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg flex justify-between items-center">
-                                <div>
-                                    <div className="text-sm font-bold">TCS</div>
-                                    <div className="text-xs text-slate-400">Buy above ₹4,000</div>
+                            {alertsTotal === null ? (
+                                <div className="text-center py-4 text-slate-500 text-sm flex gap-2 justify-center items-center">
+                                    <Loader2 className="w-4 h-4 animate-spin" /> Syndicating Alerts...
                                 </div>
-                                <div className="text-emerald-400 text-xs font-medium px-2 py-1 bg-emerald-500/20 rounded">
-                                    Hit: ₹4,010
+                            ) : alertsTotal === 0 ? (
+                                <div className="text-center py-6 text-slate-500 text-sm bg-slate-800/20 rounded-lg border border-slate-800 border-dashed">
+                                    You have no active market triggers.
                                 </div>
-                            </div>
-                            <div className="p-3 bg-slate-800/40 border border-slate-700/50 rounded-lg flex justify-between items-center">
-                                <div>
-                                    <div className="text-sm font-bold">HDFCBANK</div>
-                                    <div className="text-xs text-slate-400">Sell below ₹1,350</div>
+                            ) : (
+                                /* We need the actual full alerts array from state to render these properly. 
+                                   But since we didn't save the full array into a state variable earlier, 
+                                   we can prompt the user to go to the alerts page for details, or render a compact overview. */
+                                <div className="p-4 bg-slate-800/40 border border-slate-700/50 rounded-lg flex flex-col gap-2 items-center text-center">
+                                    <Zap className="w-6 h-6 text-amber-500 mb-1" />
+                                    <p className="text-sm font-medium text-slate-300">You have {alertsTotal} active configurations tracking live assets.</p>
+                                    <Link href="/dashboard/alerts" className="mt-2 text-xs font-bold text-amber-400 bg-amber-500/10 px-4 py-2 rounded-lg hover:bg-amber-500/20 transition-all">
+                                        View Trigger Dashboard
+                                    </Link>
                                 </div>
-                                <div className="text-slate-400 text-xs font-medium px-2 py-1 bg-slate-700 rounded">
-                                    Curr: ₹1,420
-                                </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </div>
