@@ -1,22 +1,23 @@
-import yf from 'yahoo-finance2';
+import yfModule from 'yahoo-finance2';
 
-// Defensive instantiation for Vercel Serverless where Webpack sometimes provides the raw class instead of the default singleton instance.
-let yahooFinance: any = yf;
+let yahooFinance: any = yfModule;
 
-if (yahooFinance && typeof yahooFinance.search !== 'function') {
-    if (yahooFinance.default && typeof yahooFinance.default.search === 'function') {
-        yahooFinance = yahooFinance.default;
-    } else if (typeof yahooFinance.default === 'function') {
-        yahooFinance = new yahooFinance.default();
-    } else if (typeof yahooFinance === 'function') {
-        yahooFinance = new (yahooFinance as any)();
+// Explicitly instantiate the YahooFinance class if Webpack ESM proxying returns the constructor directly.
+if (yahooFinance && yahooFinance.name === 'YahooFinance') {
+    yahooFinance = new yahooFinance();
+} else if (yahooFinance && yahooFinance.default && yahooFinance.default.name === 'YahooFinance') {
+    yahooFinance = new yahooFinance.default();
+}
+
+// Fallback logic for CommonJS environments
+if (!yahooFinance || typeof yahooFinance.search !== 'function') {
+    const reqYf = require('yahoo-finance2');
+    if (reqYf && reqYf.name === 'YahooFinance') {
+        yahooFinance = new reqYf();
+    } else if (reqYf && reqYf.default && reqYf.default.name === 'YahooFinance') {
+        yahooFinance = new reqYf.default();
     } else {
-        // If all else fails, use require fallback
-        const yfReq = require('yahoo-finance2');
-        if (typeof yfReq.search === 'function') yahooFinance = yfReq;
-        else if (yfReq.default && typeof yfReq.default.search === 'function') yahooFinance = yfReq.default;
-        else if (typeof yfReq.default === 'function') yahooFinance = new yfReq.default();
-        else if (typeof yfReq === 'function') yahooFinance = new yfReq();
+        yahooFinance = reqYf.default || reqYf;
     }
 }
 
