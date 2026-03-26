@@ -28,8 +28,8 @@ export async function GET(req: Request) {
             exchDisp: quote.exchDisp,
             typeDisp: quote.typeDisp,
         })).sort((a: any, b: any) => {
-            const aIsIndian = a.symbol.endsWith('.NS') || a.symbol.endsWith('.BO');
-            const bIsIndian = b.symbol.endsWith('.NS') || b.symbol.endsWith('.BO');
+            const aIsIndian = a.symbol ? (a.symbol.endsWith('.NS') || a.symbol.endsWith('.BO')) : false;
+            const bIsIndian = b.symbol ? (b.symbol.endsWith('.NS') || b.symbol.endsWith('.BO')) : false;
             if (aIsIndian && !bIsIndian) return -1;
             if (!aIsIndian && bIsIndian) return 1;
             return 0;
